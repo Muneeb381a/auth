@@ -7,13 +7,13 @@ dotenv.config();
 import authRoutes from "./routes/auth.route.js"
 const app = express();
 
-app.get("/", (req, res) => {
-    res.send("Hi there")
-})
+const PORT = process.env.PORT || 8000
+
+app.use(express.json());
 
 app.use("/api/auth", authRoutes)
 
-app.listen(8000, () => {
+app.listen(PORT, () => {
     connectDB()
-    console.log("server is running on port");
+    console.log(`server is running on ${PORT}`);
 })
