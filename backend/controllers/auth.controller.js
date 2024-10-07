@@ -74,13 +74,41 @@ export const verifyEmail = async(req, res) => {
         await sendWelcomeEmail(user.email, user.name)
         res.status(200).json({success: true, message: "Email Veriifed Succesfully", user: {...user._doc, password: undefined}})
     } catch (error) {
-        
+        console.error("error occured i verifying Email", error)
+        res.status(500).json({success: false, message: "Server Error"})
     }
 }
 
 export const login =async (req, res) => {
-    res.send("Login route")
+    const {email, password} = req.body
+    try {
+        const user= await User.findOne({email})
+        if(!user) {
+            res.status(400).json({ success: false, message: "Invalid credentials"})
+        }
+        const isPasswordValid = await bcryptjs.compare(password, user.password);
+
+        if(!isPasswordValid) {
+            res.status(400).json({ success: false, message: "Password is not correct"})
+        }
+        generateTokenandSetCookie(res, user._id);
+        user.lastLogin = new Date();
+        await user.save();
+
+        res.status(200).json({
+            success: true,
+            message: "User Logged in succesfully",
+            user: {
+                ...user._doc,
+                password: undefined
+            }
+        })
+    } catch (error) {
+        console.error("Error occured while logging in", error)
+        res.status(404).json({success: false, message: "Error while logging the user"})
+    }
 }
 export const logout =async (req, res) => {
-    res.send("Logout route")
+    res.clearCookie("token")
+    res.status(200).json({success: true, message: "Logged out succesfully"})
 }
